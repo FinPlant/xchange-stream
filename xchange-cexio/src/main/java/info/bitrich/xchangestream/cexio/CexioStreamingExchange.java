@@ -40,4 +40,8 @@ public class CexioStreamingExchange extends CexIOExchange implements StreamingEx
         streamingService.setApiSecret(apiSecret);
     }
 
+    public CexioStreamingService getStreamingService() {
+        return streamingService;
+    }
+
 }

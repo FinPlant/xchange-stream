@@ -31,7 +31,7 @@ public class CexioDigest extends BaseParamsDigest {
     }
 
     public String createSignature(long timestamp, String apiKey)  {
-        return new String(encodeHex(getMac().doFinal(new String(timestamp + apiKey).getBytes())));
+        return new String(encodeHex(getMac().doFinal((timestamp + apiKey).getBytes())));
     }
 
 }
