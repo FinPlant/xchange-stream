@@ -79,8 +79,8 @@ public class CexioMarketDataServiceTest {
 
         test.assertNoErrors();
         test.assertValue(orderBook -> {
-            assertThat(orderBook.getBids()).isEqualTo(sells);
-            assertThat(orderBook.getAsks()).isEqualTo(buys);
+            assertThat(orderBook.getBids()).isEqualTo(buys);
+            assertThat(orderBook.getAsks()).isEqualTo(sells);
             return true;
         });
     }

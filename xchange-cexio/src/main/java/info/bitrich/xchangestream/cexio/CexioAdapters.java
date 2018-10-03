@@ -51,7 +51,7 @@ public class CexioAdapters {
                 .map(it -> adaptOrderBookOrder(Order.OrderType.ASK, currencyPair, it))
                 .collect(Collectors.toList());
 
-        return new OrderBook(new Date(), buyOrders, sellOrders);
+        return new OrderBook(new Date(), sellOrders, buyOrders);
     }
 
     static Ticker adaptOrderBookToTicker(CexioOrderBookMessage message) {
