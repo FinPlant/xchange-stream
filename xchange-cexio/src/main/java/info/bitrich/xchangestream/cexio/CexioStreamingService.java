@@ -124,7 +124,60 @@ public class CexioStreamingService extends JsonNettyStreamingService {
             return null;
         }
 
-        return command.asText();
+        /* As cex.io don`t provide option, to distinguish order book subscription channels
+        * We create unique channel name for order book subscription, from channel name and subscribed
+        * currency pair */
+
+        String commandText = command.asText();
+        if (!commandText.equals(MARKET_DEPTH)) {
+            return commandText;
+        }
+
+        JsonNode data = message.get("data");
+
+        if (data == null) {
+            LOG.warn("Received market depth with empty data");
+            return null;
+        }
+        JsonNode pair = data.get("pair");
+
+        if (pair == null) {
+            LOG.warn("Received market depth with empty pair");
+            return null;
+        }
+        return new StringBuilder(commandText).append("-").append(pair.asText()).toString();
+    }
+
+    @Override
+    public String getSubscriptionUniqueId(String channelName, Object... args) {
+        if (!channelName.equals(MARKET_DEPTH)) {
+            return channelName;
+        }
+
+        /* As cex.io don`t provide option, to distinguish order book subscription channels.
+         * We create channel unique name for order book subscription, from channel name and subscribed
+         * currency pair. */
+
+        if (args.length < 1) {
+            throw new IllegalArgumentException("Unexpected args for order book subscription");
+        }
+
+        String[] roomData = args[0].toString().split("-");
+
+        if (roomData.length != 3) {
+            throw new IllegalArgumentException("Unexpected args for order book subscription");
+        } else {
+            final int BASE_CURRENCY = 1;
+            final int COUNTER_CURRENCY = 2;
+
+            return new StringBuilder(channelName)
+                    .append("-")
+                    .append(roomData[BASE_CURRENCY])
+                    .append(":")
+                    .append(roomData[COUNTER_CURRENCY])
+                    .toString();
+        }
+
     }
 
     private boolean auth() {
