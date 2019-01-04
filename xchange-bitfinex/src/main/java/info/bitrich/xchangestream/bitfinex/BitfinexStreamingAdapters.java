@@ -1,8 +1,11 @@
 package info.bitrich.xchangestream.bitfinex;
 
+import info.bitrich.xchangestream.bitfinex.dto.BitfinexOrderbookLevel;
+import info.bitrich.xchangestream.bitfinex.dto.BitfinexOrderbookUpdate;
 import info.bitrich.xchangestream.bitfinex.dto.BitfinexWebSocketOrder;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
+import org.knowm.xchange.dto.marketdata.OrderBookUpdate;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
@@ -11,10 +14,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.math.BigDecimal.ZERO;
 
 public class BitfinexStreamingAdapters {
 
     private static final Logger log = LoggerFactory.getLogger(BitfinexStreamingAdapters.class);
+
+    public static List<OrderBookUpdate> adaptOrderBookUpdates(BitfinexOrderbookUpdate bitfinexOrderbookUpdate,
+                                                              CurrencyPair currencyPair) {
+        return Stream.of(bitfinexOrderbookUpdate.getLevels())
+                .map(level -> BitfinexStreamingAdapters.levelToOrderBookUpdate(level, currencyPair))
+                .collect(Collectors.toList());
+    }
 
     public static Order adaptOrder(BitfinexWebSocketOrder order) {
         switch (order.getType()) {
@@ -28,6 +43,17 @@ public class BitfinexStreamingAdapters {
                 throw new NotYetImplementedForExchangeException(
                         String.format("Type %s doesn't implemented", order.getType()));
         }
+    }
+
+    private static OrderBookUpdate levelToOrderBookUpdate(BitfinexOrderbookLevel level, CurrencyPair currencyPair) {
+        Order.OrderType orderType;
+        if (level.getAmount().compareTo(ZERO) < 0) {
+            orderType = Order.OrderType.ASK;
+        } else {
+            orderType = Order.OrderType.BID;
+        }
+
+        return new OrderBookUpdate(orderType, level.getAmount(), currencyPair, level.getPrice(), null, null);
     }
 
     private static Order adaptMarketOrder(BitfinexWebSocketOrder order) {

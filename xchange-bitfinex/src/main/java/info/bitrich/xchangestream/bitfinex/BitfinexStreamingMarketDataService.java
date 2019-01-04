@@ -6,12 +6,7 @@ import info.bitrich.xchangestream.bitfinex.dto.*;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.Observable;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.OrderBook;
-import org.knowm.xchange.dto.marketdata.Ticker;
-import org.knowm.xchange.dto.marketdata.Trade;
-import org.knowm.xchange.dto.marketdata.Trades;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.knowm.xchange.dto.marketdata.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,8 +17,6 @@ import static org.knowm.xchange.bitfinex.v1.BitfinexAdapters.*;
  * Created by Lukas Zaoralek on 7.11.17.
  */
 public class BitfinexStreamingMarketDataService implements StreamingMarketDataService {
-    private static final Logger log = LoggerFactory.getLogger(BitfinexStreamingMarketDataService.class);
-
     private final BitfinexStreamingService service;
 
     private Map<CurrencyPair, BitfinexOrderbook> orderbooks = new ConcurrentHashMap<>();
@@ -34,13 +27,20 @@ public class BitfinexStreamingMarketDataService implements StreamingMarketDataSe
 
     @Override
     public Observable<OrderBook> getOrderBook(CurrencyPair currencyPair, Object... args) {
-        return getOrderBookUpdates(currencyPair, args)
+        return getOrderBookUpdatesRaw(currencyPair, args)
                 .map(orderBookUpdate -> {
                     BitfinexOrderbook orderBook =
                             updateOrCreateOrderBook(orderbooks, currencyPair, orderBookUpdate.getLevels());
 
                     return adaptOrderBook(orderBook.toBitfinexDepth(), currencyPair);
                 });
+    }
+
+    @Override
+    public Observable<OrderBookUpdate> getOrderBookUpdates(CurrencyPair currencyPair, Object... args) {
+        return getOrderBookUpdatesRaw(currencyPair, args)
+                .flatMap(bitfinexOrderBookUpdate -> Observable.fromIterable(
+                        BitfinexStreamingAdapters.adaptOrderBookUpdates(bitfinexOrderBookUpdate, currencyPair)));
     }
 
     @Override
@@ -84,7 +84,7 @@ public class BitfinexStreamingMarketDataService implements StreamingMarketDataSe
                 });
     }
 
-    public Observable<BitfinexOrderbookUpdate> getOrderBookUpdates(CurrencyPair currencyPair, Object[] args) {
+    private Observable<BitfinexOrderbookUpdate> getOrderBookUpdatesRaw(CurrencyPair currencyPair, Object... args) {
         String channelName = "book";
         final String depth = args.length > 0 ? args[0].toString() : "100";
         String pair = currencyPair.base.toString() + currencyPair.counter.toString();

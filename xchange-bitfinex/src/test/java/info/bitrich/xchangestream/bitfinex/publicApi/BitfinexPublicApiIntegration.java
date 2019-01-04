@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.OrderBook;
+import org.knowm.xchange.dto.marketdata.OrderBookUpdate;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,8 +36,8 @@ public class BitfinexPublicApiIntegration {
 
     @Test
     public void getOrderBookUpdates() {
-        TestObserver<BitfinexOrderbookUpdate> observer =
-                streamingMarketDataService.getOrderBookUpdates(CurrencyPair.BTC_USD, new Object[]{100}).take(5).test();
+        TestObserver<OrderBookUpdate> observer =
+                streamingMarketDataService.getOrderBookUpdates(CurrencyPair.BTC_USD, 100).take(5).test();
 
         observer.awaitTerminalEvent(5, TimeUnit.SECONDS);
         observer.assertNoErrors();
@@ -46,7 +47,7 @@ public class BitfinexPublicApiIntegration {
     @Test
     public void getOrderBook() {
         TestObserver<OrderBook> observer =
-                streamingMarketDataService.getOrderBook(CurrencyPair.BTC_USD, new Object[]{100}).take(5).test();
+                streamingMarketDataService.getOrderBook(CurrencyPair.BTC_USD, 100).take(5).test();
 
         observer.awaitTerminalEvent(5, TimeUnit.SECONDS);
         observer.assertNoErrors();
