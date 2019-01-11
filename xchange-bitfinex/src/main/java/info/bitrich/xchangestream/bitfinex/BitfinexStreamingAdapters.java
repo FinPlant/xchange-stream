@@ -47,13 +47,20 @@ public class BitfinexStreamingAdapters {
 
     private static OrderBookUpdate levelToOrderBookUpdate(BitfinexOrderbookLevel level, CurrencyPair currencyPair) {
         Order.OrderType orderType;
-        if (level.getAmount().compareTo(ZERO) < 0) {
+
+        BigDecimal amount = level.getAmount();
+
+        if (amount.compareTo(ZERO) < 0) {
             orderType = Order.OrderType.ASK;
         } else {
             orderType = Order.OrderType.BID;
         }
 
-        return new OrderBookUpdate(orderType, level.getAmount(), currencyPair, level.getPrice(), null, null);
+        if (level.getCount().compareTo(ZERO) == 0) {
+            amount = ZERO;
+        }
+
+        return new OrderBookUpdate(orderType, amount, currencyPair, level.getPrice(), null, null);
     }
 
     private static Order adaptMarketOrder(BitfinexWebSocketOrder order) {
