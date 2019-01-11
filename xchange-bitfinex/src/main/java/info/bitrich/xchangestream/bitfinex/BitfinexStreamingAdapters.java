@@ -56,6 +56,8 @@ public class BitfinexStreamingAdapters {
             orderType = Order.OrderType.BID;
         }
 
+        // If level is removed from order book, we receive count 0,but amount is non zero value.
+        // Set amount to zero manually, to show that level is removed.
         if (level.getCount().compareTo(ZERO) == 0) {
             amount = ZERO;
         }
