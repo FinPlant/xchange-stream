@@ -333,12 +333,12 @@ public class BinanceStreamingMarketDataService implements StreamingMarketDataSer
         BinanceOrderbook orderBookDiff = depthTransaction.getOrderBook();
 
         Stream<OrderBookUpdate> bidStream = orderBookDiff.bids.entrySet().stream()
-                .map(entry -> new OrderBookUpdate(OrderType.BID, null, currencyPair, entry.getKey(),
+                .map(entry -> new OrderBookUpdate(OrderType.BID, entry.getValue(), currencyPair, entry.getKey(),
                                                   depthTransaction.getEventTime(), entry.getValue())
                 );
 
         Stream<OrderBookUpdate> askStream = orderBookDiff.asks.entrySet().stream()
-                .map(entry -> new OrderBookUpdate(OrderType.ASK, null, currencyPair, entry.getKey(),
+                .map(entry -> new OrderBookUpdate(OrderType.ASK, entry.getValue(), currencyPair, entry.getKey(),
                                                   depthTransaction.getEventTime(), entry.getValue())
                 );
 
